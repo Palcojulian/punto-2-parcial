@@ -1,0 +1,130 @@
+/**
+ * Codigo tomado de
+ *   https://stackoverflow.com/questions/17138599/cpu-cache-understanding-using-a-c-program
+ * Codigo derivado de
+ *   http://igoro.com/archive/gallery-of-processor-cache-effects/
+ *
+ * Forma de compilacion 
+ *   gcc -Wall -O3  demo.c -o demo
+ *
+ **/
+#include <stdio.h>
+#include <sys/time.h>
+#include <time.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+#define MAX_SIZE (4096*4096)
+
+int main()
+{
+    clock_t  total_end, total_start ;
+    // double cpu_time;
+    int i = 0;
+    int j = 0;
+    int k = 0;
+
+    /* MAX_SIZE array is too big for stack.This is an unfortunate rough edge of
+     * the way the stack works.  It lives in a fixed-size buffer, set by the 
+     * program executable's configuration according to the operating system, but
+     * its actual size is seldom checked against the available space. */
+
+    total_start = clock();
+
+    int *arr = (int*)malloc(MAX_SIZE * sizeof(int));
+
+    if (arr == NULL) {
+      printf("Asignacion de memoria a la variable 'arr' fallo");
+      return 1;
+    }
+
+
+    printf("\n##### Paralela #####\n");
+
+
+    printf("\n Paralelas – Columnas - threads 1 \n");
+    for (j = 1 ; j <= 1024 ; j <<= 1) {
+        int num_threads = 1 ;
+        clock_t start, end;
+
+        start = clock();
+
+        #pragma omp parallel for num_threads(num_threads) private(k)
+        for (k = 0; k < 4096; k += j) {
+            for (i = 0; i < 4096; i++) {
+                arr[i,k] += 3;
+            }
+        }
+
+        end = clock();
+        double elapsed = (double)(end - start) / CLOCKS_PER_SEC;
+        printf("\t Tiempo con %d threads: %.6f segundos\n", num_threads, elapsed);
+    }
+
+
+    printf("\n Paralelas – Columnas - threads 2 \n");
+    for (j = 1 ; j <= 1024 ; j <<= 1) {
+        int num_threads = 2 ;
+        clock_t start, end;
+
+        start = clock();
+
+        #pragma omp parallel for num_threads(num_threads) private(k)
+        for (k = 0; k < 4096; k += j) {
+            for (i = 0; i < 4096; i++) {
+               arr[i,k] += 3;
+            }
+        }
+
+        end = clock();
+        double elapsed = (double)(end - start) / CLOCKS_PER_SEC;
+        printf("\t Tiempo con %d threads: %.6f segundos\n", num_threads, elapsed);
+    }
+
+    printf("\n Paralelas – Columnas - threads 4 \n");
+    for (j = 1 ; j <= 1024 ; j <<= 1) {
+        int num_threads = 4 ;
+        clock_t start, end;
+
+        start = clock();
+
+        #pragma omp parallel for num_threads(num_threads) private(k)
+        for (k = 0; k < 4096; k += j) {
+            for (i = 0; i < 4096; i++) {
+               arr[i,k] += 3;
+            }
+        }
+
+        end = clock();
+        double elapsed = (double)(end - start) / CLOCKS_PER_SEC;
+        printf("\t Tiempo con %d threads: %.6f segundos\n", num_threads, elapsed);
+    }
+
+
+    printf("\n Paralelas – Columnas - threads 8 \n");
+    for (j = 1 ; j <= 1024 ; j <<= 1) {
+        int num_threads = 8 ;
+        clock_t start, end;
+
+        start = clock();
+
+        #pragma omp parallel for num_threads(num_threads) private(k)
+        for (k = 0; k < 4096; k += j) {
+            for (i = 0; i < 4096; i++) {
+               arr[i,k] += 3;
+            }
+        }
+
+        end = clock();
+        double elapsed = (double)(end - start) / CLOCKS_PER_SEC;
+        printf("\t Tiempo con %d threads: %.6f segundos\n", num_threads, elapsed);
+    }
+
+
+    free(arr);
+
+    total_end = clock();
+    double seconds = (double)(total_end - total_start) / CLOCKS_PER_SEC;
+    printf("\n Tiempo total ejecuccion %f \n", seconds);
+    return 0;
+}
